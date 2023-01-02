@@ -112,7 +112,7 @@ class CourseSchedulingHelper:
                 except Exception:
                     continue
 
-                self.courses.append(Course(
+                course = Course(
                     grade=course_info[1],
                     id=course_info[2],
                     class_=course_info[6],
@@ -123,7 +123,11 @@ class CourseSchedulingHelper:
                     quota_limit=course_info[12],
                     teacher=course_info[13],
                     time=[course_info[14], course_info[15]]
-                ))
+                )
+
+                print(course.name.find_element(By.TAG_NAME, 'font').text)
+
+                self.courses.append(course)
 
     def get_my_course_info(self) -> None:
         pass
