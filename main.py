@@ -103,7 +103,6 @@ class CourseSchedulingHelper:
             course_table = self.driver.find_element(
                 By.XPATH, '/html/body/div/center/table[2]')
             tr_list = course_table.find_elements(By.TAG_NAME, 'tr')
-            courses = []
 
             for tr in tr_list:
                 course_info = tr.find_elements(By.TAG_NAME, 'td')
@@ -113,7 +112,7 @@ class CourseSchedulingHelper:
                 except Exception:
                     continue
 
-                courses.append(Course(
+                self.courses.append(Course(
                     grade=course_info[1],
                     id=course_info[2],
                     class_=course_info[6],
