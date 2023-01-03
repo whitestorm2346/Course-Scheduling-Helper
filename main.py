@@ -5,34 +5,43 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import threading
 
 COURSE_INFO_PAGE = "https://azquery.tku.edu.tw/acad/query.asp"
-SCHOOL_ADMINISTRATION_SYSTEM = "https://sso.tku.edu.tw/aissinfo/emis/TMW0000.aspx"
+SCHOOL_ADMINISTRATION_SYSTEM = "http://sinfo.ais.tku.edu.tw/eMis/"
 SCHOOL_ADMINISTRATION_SYSTEM_STUDENT = "https://sso.tku.edu.tw/aissinfo/emis/TMW0040.aspx"
 SSO_LOGIN_PAGE = "https://sso.tku.edu.tw/NEAI/logineb.jsp?myurl=https://sso.tku.edu.tw/aissinfo/emis/tmw0012.aspx"
+SEARCH_PERSONAL_COURSE = "https://sso.tku.edu.tw/aissinfo/emis/TMWC020.aspx"
 
 
 class Course:
     def __init__(self, grade, id, class_, type, credit, group, name, quota_limit, teacher, time) -> None:
-        self.grade = grade  # 年級
-        self.id = id  # 開課序號
-        self.class_ = class_  # 班別
-        self.type = type  # 0: 必修, 1: 選修
-        self.credit = credit  # 學分
-        self.group = group  # 群別
-        self.name = name  # 科目名稱
-        self.quota_limit = quota_limit  # 人數設限
-        self.teacher = teacher  # 授課老師
-        self.time = time  # 上課時間/地點
+        self.grade: int = grade  # 年級
+        self.id: str = id  # 開課序號
+        self.class_: str = class_  # 班別
+        self.type: bool = type  # 必選修
+        self.credit: int = credit  # 學分
+        self.group: str = group  # 群別
+        self.name: str = name  # 科目名稱
+        self.quota_limit: int = quota_limit  # 人數設限
+        self.teacher: str = teacher  # 授課老師
+        self.time: str = time  # 上課時間/地點
 
     def get_info(self) -> str:
         return ''
 
     def print(self) -> None:
-        pass
+        print(f'grade = {self.grade}')
+        print(f'id = {self.id}')
+        print(f'class = {self.class_}')
+        print(f'type = {self.type}')
+        print(f'credit = {self.credit}')
+        print(f'group = {self.group}')
+        print(f'name = {self.name}')
+        print(f'quota limit = {self.quota_limit}')
+        print(f'teacher = {self.teacher}')
+        print(f'time = {self.time}')
 
 
 class CourseSchedulingHelper:
@@ -82,12 +91,35 @@ class CourseSchedulingHelper:
             By.XPATH, '/html/body/table[3]/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr[5]/td[3]/input[3]')
         time_in_range.click()
 
+    def __sso_login__(self) -> None:
+        self.driver.get(SSO_LOGIN_PAGE)
+
+        account_input = self.driver.find_element(
+            By.XPATH, '//*[@id="username"]')
+        account_input.clear()
+        account_input.send_keys(self.student_id)
+
+        password_input = self.driver.find_element(
+            By.XPATH, '//*[@id="password"]')
+        password_input.clear()
+        password_input.send_keys(self.password)
+
+        login_btn = self.driver.find_element(
+            By.XPATH, '//*[@id="loginbtn"]')
+        login_btn.click()
+
+        if self.driver.current_url != SCHOOL_ADMINISTRATION_SYSTEM_STUDENT:
+            msg = self.driver.find_element(
+                By.XPATH, '//*[@id="eaiForm"]/div/article/section/fieldset/p[4]/font')
+            print(msg.text)
+            exit(1)
+
     def run(self) -> None:
         self.student_id = input('請輸入學號: ')
         self.password = input('請輸入密碼: ')
 
     def get_all_course_info(self) -> None:
-        self.courses = []
+        self.all_courses = []
 
         for day in range(1, 6):
             self.driver.get(COURSE_INFO_PAGE)
@@ -112,25 +144,99 @@ class CourseSchedulingHelper:
                 except Exception:
                     continue
 
+                grade_text = course_info[1].text
+                id_text = course_info[2].text
+                class_text = course_info[6].text
+                type_text = course_info[8].text
+                credit_text = course_info[9].text
+                group_text = course_info[10].text
+                name_text = course_info[11].text
+                quota_limit_text = course_info[12].text
+                teacher_text = course_info[13].text
+                time_text = [
+                    course_info[14].text,
+                    course_info[15].text
+                ]
+
                 course = Course(
-                    grade=course_info[1],
-                    id=course_info[2],
-                    class_=course_info[6],
-                    type=course_info[8],
-                    credit=course_info[9],
-                    group=course_info[10],
-                    name=course_info[11],
-                    quota_limit=course_info[12],
-                    teacher=course_info[13],
-                    time=[course_info[14], course_info[15]]
+                    grade=grade_text,
+                    id=id_text,
+                    class_=class_text,
+                    type=type_text,
+                    credit=credit_text,
+                    group=group_text,
+                    name=name_text,
+                    quota_limit=quota_limit_text,
+                    teacher=teacher_text,
+                    time=time_text
                 )
 
-                print(course.name.find_element(By.TAG_NAME, 'font').text)
+                course.print()
+                print('\n')
 
-                self.courses.append(course)
+                self.all_courses.append(course)
+
+        self.driver.close()
 
     def get_my_course_info(self) -> None:
-        pass
+        self.my_courses = []
+
+        self.driver.get(SCHOOL_ADMINISTRATION_SYSTEM)
+
+        entry_link = self.driver.find_element(
+            By.XPATH, '/html/body/table/tbody/tr[9]/td[2]/table/tbody/tr[10]/td[1]/a')
+        entry_link.click()
+
+        if self.driver.current_url == SSO_LOGIN_PAGE:
+            self.__sso_login__()
+
+        inner_entry_link = self.driver.find_element(
+            By.XPATH, '//*[@id="form1"]/table/tbody/tr[3]/td/table/tbody/tr[8]/td[1]/p/a')
+        inner_entry_link.click()
+
+        start_searching_btn = self.driver.find_element(
+            By.XPATH, '//*[@id="Button1"]')
+        start_searching_btn.click()
+
+        course_table = self.driver.find_element(
+            By.XPATH, '//*[@id="DataGrid1"]')
+        tr_list = course_table.find_elements(By.TAG_NAME, 'tr')
+
+        for tr in tr_list:
+            course_info = tr.find_elements(By.TAG_NAME, 'td')
+
+            if course_info[1].text == '系所':
+                continue
+            elif course_info[0].text == '':
+                self.my_courses[-1].time.append(course_info[11].text)
+            else:
+                grade_text = course_info[2].text
+                id_text = course_info[0].text
+                class_text = course_info[5].text
+                type_text = course_info[7].text
+                credit_text = course_info[8].text
+                group_text = course_info[9].text
+                name_text = course_info[3].text
+                quota_limit_text = ''
+                teacher_text = course_info[10].text
+                time_text = [course_info[11].text]
+
+                course = Course(
+                    grade=grade_text,
+                    id=id_text,
+                    class_=class_text,
+                    type=type_text,
+                    credit=credit_text,
+                    group=group_text,
+                    name=name_text,
+                    quota_limit=quota_limit_text,
+                    teacher=teacher_text,
+                    time=time_text
+                )
+
+                self.my_courses.append(course)
+
+        self.driver.close()
 
 
 class MainUI:
@@ -142,5 +248,12 @@ class MainUI:
 
 
 if __name__ == "__main__":
-    course_scheduling_helper = CourseSchedulingHelper()
-    course_scheduling_helper.get_all_course_info()
+    course_scheduling_helper = CourseSchedulingHelper(
+        student_id='410411218',
+        password='Whitestorm2346'
+    )
+    course_scheduling_helper.get_my_course_info()
+
+    for course in course_scheduling_helper.my_courses:
+        course.print()
+        print()
