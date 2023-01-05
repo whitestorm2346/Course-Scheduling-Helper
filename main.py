@@ -248,10 +248,7 @@ class MainUI:
 
 
 if __name__ == "__main__":
-    course_scheduling_helper = CourseSchedulingHelper(
-        student_id='410411218',
-        password='Whitestorm2346'
-    )
+    course_scheduling_helper = CourseSchedulingHelper()
     course_scheduling_helper.get_my_course_info()
 
     for course in course_scheduling_helper.my_courses:
