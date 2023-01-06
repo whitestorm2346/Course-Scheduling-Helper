@@ -5,6 +5,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.edge.options import Options
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import threading
 
@@ -28,8 +29,11 @@ class Course:
         self.teacher: str = teacher  # 授課老師
         self.time: str = time  # 上課時間/地點
 
-    def get_info(self) -> str:
-        return ''
+    def __repr__(self) -> str:
+        return f'{self.id} {self.name} {self.teacher} {self.time}'
+
+    def __str__(self) -> str:
+        return f'{self.id} {self.name} {self.teacher} {self.time}'
 
     def print(self) -> None:
         print(f'grade = {self.grade}')
@@ -51,9 +55,12 @@ class CourseSchedulingHelper:
         self.__init_driver__()
 
     def __init_driver__(self) -> None:
-        edge_options = webdriver.EdgeOptions()
+        edge_options = Options()
         edge_options.add_argument('--log-level=3')
-        self.driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+        self.driver = webdriver.Edge(
+            EdgeChromiumDriverManager().install(),
+            options=edge_options
+        )
 
     def __course_search_setting__(self, value) -> None:
         # 科目時段
@@ -114,6 +121,12 @@ class CourseSchedulingHelper:
             print(msg.text)
             exit(1)
 
+    def __close_pop_up_window__(self) -> None:
+        handle = self.driver.window_handles
+        self.driver.switch_to.window(handle[-1])
+        self.driver.close()
+        self.driver.switch_to.window(handle[0])
+
     def run(self) -> None:
         self.student_id = input('請輸入學號: ')
         self.password = input('請輸入密碼: ')
@@ -155,7 +168,7 @@ class CourseSchedulingHelper:
                 teacher_text = course_info[13].text
                 time_text = [
                     course_info[14].text,
-                    course_info[15].text
+                    course_info[15].text  # if no class -> ''
                 ]
 
                 course = Course(
@@ -182,6 +195,7 @@ class CourseSchedulingHelper:
         self.my_courses = []
 
         self.driver.get(SCHOOL_ADMINISTRATION_SYSTEM)
+        self.__close_pop_up_window__()
 
         entry_link = self.driver.find_element(
             By.XPATH, '/html/body/table/tbody/tr[9]/td[2]/table/tbody/tr[10]/td[1]/a')
@@ -208,7 +222,7 @@ class CourseSchedulingHelper:
             if course_info[1].text == '系所':
                 continue
             elif course_info[0].text == '':
-                self.my_courses[-1].time.append(course_info[11].text)
+                self.my_courses[-1].time[1] = course_info[11].text
             else:
                 grade_text = course_info[2].text
                 id_text = course_info[0].text
@@ -219,7 +233,7 @@ class CourseSchedulingHelper:
                 name_text = course_info[3].text
                 quota_limit_text = ''
                 teacher_text = course_info[10].text
-                time_text = [course_info[11].text]
+                time_text = [course_info[11].text, '']
 
                 course = Course(
                     grade=grade_text,
@@ -238,6 +252,16 @@ class CourseSchedulingHelper:
 
         self.driver.close()
 
+    def save_courses_to_txt(self) -> None:
+        with open('./my_courses.txt', 'a') as file:
+            for course in self.my_courses:
+                file.write(f'{course.name}.')
+
+                if course.time[1] == '':
+                    file.write(f'{course.time[0]}\n')
+                else:
+                    file.write(f'{course.time[0]}.{course.time[1]}\n')
+
 
 class MainUI:
     def __init__(self) -> None:
@@ -248,7 +272,13 @@ class MainUI:
 
 
 if __name__ == "__main__":
-    course_scheduling_helper = CourseSchedulingHelper()
+    stu_id = input('請輸入學號: ')
+    pw = input('請輸入密碼: ')
+
+    course_scheduling_helper = CourseSchedulingHelper(
+        student_id=stu_id,
+        password=pw
+    )
     course_scheduling_helper.get_my_course_info()
 
     for course in course_scheduling_helper.my_courses:
