@@ -122,10 +122,6 @@ class CourseSchedulingHelper:
         self.driver.close()
         self.driver.switch_to.window(handle[0])
 
-    def run(self) -> None:
-        self.student_id = input('請輸入學號: ')
-        self.password = input('請輸入密碼: ')
-
     def get_all_course_info(self) -> None:
         self.all_courses = []
 
@@ -246,16 +242,6 @@ class CourseSchedulingHelper:
                 self.my_courses.append(course)
 
         self.driver.close()
-
-    def my_courses_to_txt(self) -> None:
-        with open('./my_courses.txt', 'a') as file:
-            for course in self.my_courses:
-                file.write(f'{course.name}.')
-
-                if course.time[1] == '':
-                    file.write(f'{course.time[0]}\n')
-                else:
-                    file.write(f'{course.time[0]}.{course.time[1]}\n')
 
 
 if __name__ == "__main__":
