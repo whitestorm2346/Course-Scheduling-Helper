@@ -243,6 +243,9 @@ class CourseSchedulingHelper:
 
         self.driver.close()
 
+    def get_optional_courses(self) -> None:
+        pass
+
 
 if __name__ == "__main__":
     stu_id = input('請輸入學號: ')
