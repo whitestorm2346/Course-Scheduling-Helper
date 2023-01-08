@@ -3,6 +3,10 @@ import xlsxwriter
 
 DAY = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 CLASS = [i for i in range(1, 15)]
+COURSE_INFO = [
+    '開課序號', '科目名稱', '授課老師',
+    '年級', '必選修', '學分', '上課時間/地點'
+]
 
 
 class MakeSchedule:
@@ -14,11 +18,14 @@ class MakeSchedule:
         self.__init_schedule_page__()
 
     def __init_optional_courses_page__(self) -> None:
-        pass
+        with xlsxwriter.Workbook('排課資料.xlsx') as workbook:
+            worksheet = workbook.add_worksheet(name='未衝堂課程資訊')
+
+            worksheet.write_row(0, 0, COURSE_INFO)
 
     def __init_schedule_page__(self) -> None:
         with xlsxwriter.Workbook('排課資料.xlsx') as workbook:
-            worksheet = workbook.add_worksheet()
+            worksheet = workbook.add_worksheet(name='當前個人課表')
 
             worksheet.write_row(0, 1, DAY)
             worksheet.write_column(1, 0, CLASS)

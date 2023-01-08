@@ -14,6 +14,8 @@ class MainUI:
         self.__init_login_frame__()
         self.__init_buttons__()
 
+        # need to make a login first
+
         self.scheduling_helper = CourseSchedulingHelper()
         self.make_schedule = MakeSchedule()
         self.threads = []

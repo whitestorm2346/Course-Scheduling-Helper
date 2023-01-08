@@ -54,9 +54,9 @@ class CourseSchedulingHelper:
         edge_options.add_argument('--log-level=3')
         self.driver = webdriver.Edge(
             EdgeChromiumDriverManager().install(),
-            options=edge_options
+            options=edge_options,
+
         )
-        self.driver.close()
 
     def __course_search_setting__(self, value) -> None:
         # 科目時段
