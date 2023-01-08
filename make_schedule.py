@@ -25,12 +25,12 @@ class MakeSchedule:
 
     def update_optional_courses(self, courses_data: CourseSchedulingHelper) -> None:
         courses_data.get_optional_courses()
-        
+
         # worksheet: 未衝堂課程資訊
 
     def update_schedule(self, courses_data: CourseSchedulingHelper) -> None:
         courses_data.get_my_course_info()
-        
+
         # worksheet: 當前個人課表
 
 

@@ -56,6 +56,7 @@ class CourseSchedulingHelper:
             EdgeChromiumDriverManager().install(),
             options=edge_options
         )
+        self.driver.close()
 
     def __course_search_setting__(self, value) -> None:
         # 科目時段

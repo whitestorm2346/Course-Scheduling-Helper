@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from course_scheduling_helper import CourseSchedulingHelper
 from make_schedule import MakeSchedule
-import threading
+from threading import Thread
 
 ENGLISH = 'Times New Roman'
 CHINESE = '微軟正黑體'
@@ -16,7 +16,7 @@ class MainUI:
 
         self.scheduling_helper = CourseSchedulingHelper()
         self.make_schedule = MakeSchedule()
-        self.threads: List[threading, ...] = []
+        self.threads = []
 
     def __init_main_frame__(self) -> None:
         self.root = Tk()
@@ -54,26 +54,30 @@ class MainUI:
         self.update_optional_courses_btn = Button(self.root)
         self.update_optional_courses_btn.config(
             text='update optional courses', font=(ENGLISH, 14, 'bold'),
-            height=2, width=25, command=self.__btn_1_onclick__
+            height=2, width=25, command=self.__update_optional_courses_onclick__
         )
         self.update_optional_courses_btn.pack(side=TOP, padx=20, pady=5)
 
         self.update_schedule_btn = Button(self.root)
         self.update_schedule_btn.config(
             text='update schedule', font=(ENGLISH, 14, 'bold'),
-            height=2, width=25, command=self.__btn_2_onclick__
+            height=2, width=25, command=self.__update_schedule_onclick__
         )
         self.update_schedule_btn.pack(side=TOP, padx=20, pady=5)
 
-    def __btn_1_onclick__(self):
-        self.make_schedule.update_optional_courses(
-            courses_data=self.scheduling_helper
-        )
+    def __update_optional_courses_onclick__(self):
+        self.threads.append(Thread(
+            target=self.make_schedule.update_optional_courses,
+            args=(self.scheduling_helper, )
+        ))
+        self.threads[-1].start()
 
-    def __btn_2_onclick__(self):
-        self.make_schedule.update_schedule(
-            courses_data=self.scheduling_helper
-        )
+    def __update_schedule_onclick__(self):
+        self.threads.append(Thread(
+            target=self.make_schedule.update_schedule,
+            args=(self.scheduling_helper, )
+        ))
+        self.threads[-1].start()
 
     def run(self) -> None:
         self.root.mainloop()
