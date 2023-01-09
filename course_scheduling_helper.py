@@ -57,6 +57,7 @@ class CourseSchedulingHelper:
             options=edge_options,
 
         )
+        self.driver.minimize_window()
 
     def __course_search_setting__(self, value) -> None:
         # 科目時段
@@ -95,6 +96,7 @@ class CourseSchedulingHelper:
         time_in_range.click()
 
     def __sso_login__(self) -> None:
+        self.driver.maximize_window()
         self.driver.get(SSO_LOGIN_PAGE)
 
         account_input = self.driver.find_element(
@@ -127,6 +129,7 @@ class CourseSchedulingHelper:
         self.all_courses = []
 
         for day in range(1, 6):
+            self.driver.maximize_window()
             self.driver.get(COURSE_INFO_PAGE)
 
             self.__course_search_setting__(value=day)  # 前置設定
@@ -176,9 +179,6 @@ class CourseSchedulingHelper:
                     time=time_text
                 )
 
-                course.print()
-                print('\n')
-
                 self.all_courses.append(course)
 
         self.driver.close()
@@ -186,6 +186,7 @@ class CourseSchedulingHelper:
     def get_my_course_info(self) -> None:
         self.my_courses = []
 
+        self.driver.maximize_window()
         self.driver.get(SCHOOL_ADMINISTRATION_SYSTEM)
         self.__close_pop_up_window__()
 
@@ -242,10 +243,13 @@ class CourseSchedulingHelper:
 
                 self.my_courses.append(course)
 
-        self.driver.close()
+        self.driver.minimize_window()
 
     def get_optional_courses(self) -> None:
         pass
+
+    def close(self) -> None:
+        self.driver.close()
 
 
 if __name__ == "__main__":
